@@ -105,8 +105,8 @@ def newOffenseEntry(taxid, crime):
 # Funciones de consulta
 # ==============================
 def getdates(cont):
-    date=input(print('Ingrese la fecha: '))
-    n=int(input(print('Ingrese el numero de taxis: ')))
+    date=input(print('Ingrese la fecha:'))
+    n=int(input(print('Ingrese el numero de taxis:')))
     date=datetime.datetime.strptime(date, '%Y-%m-%d')
     date=date.date()
     crimedate=om.get(cont, date)
@@ -144,56 +144,49 @@ def getdates(cont):
         n-=1
 
 def getdatesbyrange(cont):
-    initialdate=input(print('Ingrese la fecha: '))
-    finaldate=input(print('Ingrese la fecha: '))
-    n=int(input(print('Ingrese el numero de taxis: ')))
+    initialdate=input('ingrese la fecha inicial')
+    finaldate=input('Ingrese la fecha final')
+    n=int(input('Ingrese número de taxis:'))-1
     initialdate=datetime.datetime.strptime(initialdate, '%Y-%m-%d')
     initialdate=initialdate.date()
     finaldate=datetime.datetime.strptime(finaldate, '%Y-%m-%d')
     finaldate=finaldate.date()
     crimedates=om.values(cont,initialdate,finaldate)
-    crimedates=list(crimedates.keys())
-    print(crimedates)
-    m=it.newIterator(crimedates)
-    while it.hasNext(m):
-        e=it.next(m)
-        e=datetime.datetime.strptime(e, '%Y-%m-%d')
-        e=e.date()
-        millas1={}
-        dinero1={}
-        servicios1={}
-        crimedate=om.get(cont,e)
-        a=me.getValue(crimedate)['taxiIndex']
-        b=map.keySet(a)
-        i=it.newIterator(b)
-        puntajes={}
-        while it.hasNext(i):
-            c=it.next(i)
-            millas=0
-            servicios=0
-            dinero=0
-            taxi=map.get(a,c)
-            taxi=me.getValue(taxi)
-            taxi=taxi['lsttrips']
-            x=it.newIterator(taxi)
-            while it.hasNext(x):
-                w=it.next(x)
+    crimedates=crimedates['last']
+    crimedates=crimedates['info']
+    a=crimedates['taxiIndex']
+    millas1={}
+    dinero1={}
+    servicios1={}
+    b=map.keySet(a)
+    i=it.newIterator(b)
+    puntajes={}
+    while it.hasNext(i):
+        c=it.next(i)
+        millas=0
+        servicios=0
+        dinero=0
+        taxi=map.get(a,c)
+        taxi=me.getValue(taxi)
+        taxi=taxi['lsttrips']
+        x=it.newIterator(taxi)
+        while it.hasNext(x):
+                w=it.next(x)                
                 if float(w['trip_total'])>0:
                     milla=float(w['trip_miles'])
                     millas+=milla
                     money=float(w['trip_total'])
                     dinero+=money
-                    servicios+=1
-            if dinero>0:
-                if not w in millas1:
-                    millas1[w]=millas
-                    servicios1[w]=servicios
-                    dinero1[w]=dinero
-                if w in millas1:
-                    millas1[w]=millas1[w]+millas
-                    servicios1[w]=servicios1[w]
-                    dinero1[w]=dinero1[w]
-    a=me.getValue(crimedate)['taxiIndex']
+                    servicios+=1    
+        if dinero>0:
+            if not w['taxi_id'] in millas1:
+                millas1[w['taxi_id']]=millas
+                servicios1[w['taxi_id']]=servicios
+                dinero1[w['taxi_id']]=dinero
+            if w['taxi_id'] in millas1:
+                millas1[w['taxi_id']]=millas1[w['taxi_id']]+millas
+                servicios1[w['taxi_id']]=servicios1[w['taxi_id']]
+                dinero1[w['taxi_id']]=dinero1[w['taxi_id']]
     b=map.keySet(a)
     i=it.newIterator(b)
     puntajes={}
@@ -202,11 +195,12 @@ def getdatesbyrange(cont):
     servicios=0
     while it.hasNext(i):
         c=it.next(i)
-        millas=millas1[c]
-        dinero=dinero1[c]
-        servicios=servicios1[c]
-        puntaje=(millas/dinero)*servicios
-        puntajes[c]=puntaje
+        if c in millas1:
+            millas=millas1[c]
+            dinero=dinero1[c]
+            servicios=servicios1[c]
+            puntaje=(millas/dinero)*servicios
+            puntajes[c]=puntaje
     puntajes_ord=sorted(puntajes.items(),key=operator.itemgetter(1), reverse=True)
     num=1
     cent=0
